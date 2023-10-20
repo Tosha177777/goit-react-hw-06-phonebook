@@ -1,28 +1,21 @@
-import React, { useState, useEffect } from 'react';
 import Contacts from './Form/Contacts';
 import Title from 'components/Title/Title';
 import ContactList from './ContactList/ContactItemRender';
 import Filter from './Filter/Filter';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addContact,
+  deleteContact,
+  filtersChange,
+} from 'redux/contactFilterReducer';
 
 const App = () => {
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    const stringifiedContacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(stringifiedContacts) ?? [];
-    if (parsedContacts.length > 0) {
-      setContacts(parsedContacts);
-    }
-  }, []);
-
-  useEffect(() => {
-    const stringifiedContacts = JSON.stringify(contacts);
-    localStorage.setItem('contacts', stringifiedContacts);
-  }, [contacts]);
+  const dispatch = useDispatch();
+  const contacts = useSelector(state => state.contactDetails.contacts);
+  const filters = useSelector(state => state.contactDetails.filters);
 
   const onDelete = name => {
-    setContacts(contacts.filter(contact => contact.name !== name));
+    dispatch(deleteContact(name));
   };
 
   const handleContact = newContact => {
@@ -38,14 +31,14 @@ const App = () => {
       return;
     }
 
-    setContacts([...contacts, newContact]);
+    dispatch(addContact(newContact));
   };
 
   const onFilterChange = e => {
     const { name, value } = e.target;
     switch (name) {
       case 'filter':
-        setFilter(value);
+        dispatch(filtersChange(value));
         break;
 
       default:
@@ -54,7 +47,7 @@ const App = () => {
   };
 
   const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
+    contact.name.toLowerCase().includes(filters.toLowerCase())
   );
   return (
     <div>
@@ -62,7 +55,7 @@ const App = () => {
         <Contacts handleContact={handleContact} />
       </Title>
       <Title title={'Contacts'}>
-        <Filter filter={filter} onFilterChange={onFilterChange} />
+        <Filter filter={filters} onFilterChange={onFilterChange} />
         <ContactList contacts={filteredContacts} onDelete={onDelete} />
       </Title>
     </div>
